@@ -42,12 +42,15 @@ export default class Whirlpool {
       [1, 4, 1, 8, 5, 2, 9, 1],
     ];
   }
+asciiify = (str) =>{
+  return str.split("").map((char) => char.charCodeAt());
 
-  hash = (plaintext_ = [0]) => {
-    const plaintext = plaintext_.split("").map((char) => char.charCodeAt());
-
+}
+  hash = (plaintext_ ) => {
+const plaintext = this.asciiify(plaintext_)
     const padded = this.mDPadding(plaintext);
-    const blocks = this.initBlocks(padded);
+    const blocks = this.initBlocks(padded,512);
+    console.log('result---', typeof padded, blocks);
     let hashMatrix = this.initHashMatrix(8, 8, 0);
     for (let i = 0; i < blocks.length; i++) {
       hashMatrix = this.oneBlock(blocks[i], hashMatrix, this.sBox);
@@ -58,14 +61,15 @@ export default class Whirlpool {
 
   ////////////////
 
-  mDPadding = (m = [0]) => {
+  mDPadding = (m) => {
     //m is your message encoded in ascii/unicode aka an array of decimal number 0- 128
     const message = m
       .map((charCode) => charCode.toString(2).padStart(8, "0"))
       .join("");
+
     return (
       message +
-      1 +
+      "1" +
       Array(this.nearestOddMultiple(message.length, 256) - message.length - 1)
         .fill("0")
         .join("") +
@@ -73,27 +77,32 @@ export default class Whirlpool {
     );
   };
 
-  initBlocks = (plaintext = "") => {
+  initBlocks = (plaintext, blockSize) => {
     const blocks = [];
-    for (let i = 0; i < plaintext.length / 512 - 1; i++) {
+    for (let i = 0; i < plaintext.length / blockSize; i++) {
       blocks.push(
-        this.convertBlockToMatrix(plaintext.substring(i * 512, (i + 1) * 512))
+        this.convertBlockToMatrix(plaintext.substring(i * blockSize, (i + 1) * blockSize))
       );
     }
-
     return blocks;
   };
 
-  convertBlockToMatrix = (block = "") => {
-    const a = block.split("");
+  convertBlockToMatrix = (block) => {//"01010101010101010101" x 512
+    const a = block.split(""); //["0","1"] x 512
+console.log("WH cbtm: block a=>",block,a)
     const bs = [];
-    for (let i = 0; i < a.length; i += 8) {
-      bs.push(parseInt(a.slice(i, i + 8).join(""), 2));
+    for (let i = 0; i < a.length; i += 8) { // i 0,8,16,26
+      const byteString =a.slice(i, i + 8).join("") 
+      const byte = parseInt(byteString,2);
+      console.log("WH cbtm:byte byteString=>", byte, byteString);
+      bs.push(byte);
     }
     const mt = [];
     for (let i = 0; i < bs.length; i += 8) {
       mt.push(bs.slice(i, i + 8));
     }
+    const str = "lvhhhvvvjz"
+    str.sub
     return mt;
   };
 
