@@ -1,7 +1,7 @@
 import Security from "./Security.js";
 export default class Whirlpool {
   constructor() {
-    (this.sBox = [
+    this.sBox = [
       [24, 35, 198, 232, 135, 184, 1, 79, 54, 166, 210, 245, 121, 111, 145, 82],
       [96, 188, 11, 142, 163, 12, 123, 53, 29, 224, 215, 194, 46, 75, 254, 87],
       [
@@ -30,32 +30,30 @@ export default class Whirlpool {
         225,
       ],
       [22, 58, 105, 9, 112, 182, 192, 237, 204, 66, 152, 164, 40, 92, 248, 134],
-    ]),
-      (this.transitionMatrix = [
-        [1, 1, 4, 1, 8, 5, 2, 9],
-        [9, 1, 1, 4, 1, 8, 5, 2],
-        [2, 9, 1, 1, 4, 1, 8, 5],
-        [5, 2, 9, 1, 1, 4, 1, 8],
-        [8, 5, 2, 9, 1, 1, 4, 1],
-        [1, 8, 5, 2, 9, 1, 1, 4],
-        [4, 1, 8, 5, 2, 9, 1, 1],
-        [1, 4, 1, 8, 5, 2, 9, 1],
-      ]);
+    ];
+    this.transitionMatrix = [
+      [1, 1, 4, 1, 8, 5, 2, 9],
+      [9, 1, 1, 4, 1, 8, 5, 2],
+      [2, 9, 1, 1, 4, 1, 8, 5],
+      [5, 2, 9, 1, 1, 4, 1, 8],
+      [8, 5, 2, 9, 1, 1, 4, 1],
+      [1, 8, 5, 2, 9, 1, 1, 4],
+      [4, 1, 8, 5, 2, 9, 1, 1],
+      [1, 4, 1, 8, 5, 2, 9, 1],
+    ];
   }
 
-  hash = (plaintext_ = [0], translator = new Security()) => {
-    const plaintext = translator.encodeMessageUnicode(plaintext_);
+  hash = (plaintext_ = [0]) => {
+    const plaintext = plaintext_.split("").map((char) => char.charCodeAt());
+
     const padded = this.mDPadding(plaintext);
     const blocks = this.initBlocks(padded);
     let hashMatrix = this.initHashMatrix(8, 8, 0);
-
     for (let i = 0; i < blocks.length; i++) {
       hashMatrix = this.oneBlock(blocks[i], hashMatrix, this.sBox);
     }
-    return hashMatrix
-      .flat()
-      .map((i) => i.toString(16).padStart(2, 0))
-      .join(" ");
+// return hashMatrix.flat()
+ return this.toFormattedHexString(hashMatrix);
   };
 
   ////////////////
@@ -79,14 +77,14 @@ export default class Whirlpool {
     const blocks = [];
     for (let i = 0; i < plaintext.length / 512 - 1; i++) {
       blocks.push(
-        this.convertBlockToMatrix2(plaintext.substring(i * 512, (i + 1) * 512))
+        this.convertBlockToMatrix(plaintext.substring(i * 512, (i + 1) * 512))
       );
     }
 
     return blocks;
   };
 
-  convertBlockToMatrix2 = (block = "") => {
+  convertBlockToMatrix = (block = "") => {
     const a = block.split("");
     const bs = [];
     for (let i = 0; i < a.length; i += 8) {
@@ -99,16 +97,7 @@ export default class Whirlpool {
     return mt;
   };
 
-  convertBlockToMatrix = (block = "") => {
-    const arr = block.split("");
-    return Array.from({ length: 8 }, (_, z) =>
-      Array.from({ length: 8 }, (_, y) =>
-        Array.from({ length: 8 }, (_, x) => arr[z * 64 + y * 8 + x])
-      )
-    );
-  };
-
-  initHashMatrix = (x, y, n) => {
+  initHashMatrix = (x = 8, y = 8, n = 0) => {
     return Array(x).fill(Array(y).fill(n));
   };
 
@@ -128,7 +117,6 @@ export default class Whirlpool {
       h = wHashKey;
       m = wMessage;
     }
-    // console.log("wh ob bd:m^hk m hk",m^hk,m,k)
     const blockDigest = this.addRoundKey(this.addRoundKey(m, hashKey), block);
     return blockDigest;
   };
@@ -159,8 +147,15 @@ export default class Whirlpool {
     return (Math.ceil(n / m) + (Math.ceil(n / m) % 2 ? 0 : 1)) * m;
   };
 
-  subByte = (m = [2], sbox) => {
-    return sbox[m >> 4][parseInt(m.toString(2).slice(-4), 2)];
+  toFormattedHexString = (hashMatrix) => {
+    return hashMatrix
+      .flat()
+      .map((code) => code.toString(16).toUpperCase().padStart(2, "0"))
+      .join("");
+  };
+  ///////
+  subByte = (m, sbox) => {
+    return sbox[m >>>4][m & 0b00001111];
   };
 
   subBytes = (block, sBox) => {
@@ -235,7 +230,4 @@ export default class Whirlpool {
       return Array.from({ length: 8 }, (_, y) => block[x][y] ^ key[x][y]);
     });
   };
-
-  //   console.log(blocks);
-  //   return digest;
 }
