@@ -18,7 +18,7 @@ export default class PrimeManager {
    */
   generatePrimePair = (input1, input2) => {
     const prime1 = this.randomPrimeGenerator(input1);
-    const prime2 = this.differentPrime(
+    const prime2 = this.findUniquePrime(
       prime1,
       this.randomPrimeGenerator(input2)
     );
@@ -41,9 +41,7 @@ export default class PrimeManager {
     if (input < 4) return 3;
 
     let potentialPrime = input % 2 === 0 ? input + 1 : input;
-    while (!this.isPrime(potentialPrime, primesList)) {
-      potentialPrime += 2; // This method is inefficient for large integers
-    }
+    while (!this.isPrime(potentialPrime, primesList)) potentialPrime += 2; // This method is inefficient for large integers
 
     return potentialPrime;
   };
@@ -88,7 +86,7 @@ export default class PrimeManager {
    * @param {number[]} primeList - Array of existing prime numbers (optional).
    * @returns {number} A different prime number.
    */
-  differentPrime = (prime1, prime2, primeList = this.primesList) => {
+  findUniquePrime = (prime1, prime2, primeList = this.primesList) => {
     return prime1 === prime2
       ? this.randomPrimeGenerator(prime2 * 2, primeList)
       : prime2;
