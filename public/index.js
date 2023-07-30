@@ -3,8 +3,6 @@
 import PrimeManager from "./cryp/PrimeManager.js";
 import primesList from "./cryp/Primes.js";
 import RSA from "./cryp/RSA.js";
-import modExp from "./cryp/modExp.js";
-window.mo = modExp;
 
 window.rsa = RSA;
 window.pm = PrimeManager;

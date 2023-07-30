@@ -1,5 +1,6 @@
 import primesList from "./Primes.js";
 import PrimeManager from "./PrimeManager.js";
+import modularExponentiation from "./modExp.js";
 
 /**
  * import RSA from "./cryptoDir/RSA"
@@ -46,13 +47,15 @@ export default class RSA {
     const msgCharList = message.split("");
     const encodedMessage = msgCharList.map((character) => {
       return Number(
-        BigInt(character.charCodeAt()) ** BigInt(encryptionKey.key) %
+        modularExponentiation(
+          BigInt(character.charCodeAt()),
+          BigInt(encryptionKey.key),
           BigInt(encryptionKey.base)
+        )
       );
     });
     return encodedMessage;
   };
-
   /**
    * Decrypts a cipher using the provided decryption key.
    * @param {Array} cipher - The encrypted cipher to be decrypted.
@@ -65,8 +68,11 @@ export default class RSA {
     const message = cipher.map((character) => {
       return String.fromCharCode(
         Number(
-          BigInt(character) ** BigInt(decryptionKey.key) %
+          modularExponentiation(
+            BigInt(character),
+            BigInt(decryptionKey.key),
             BigInt(decryptionKey.base)
+          )
         )
       );
     });
